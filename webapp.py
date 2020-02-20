@@ -55,16 +55,20 @@ def authorized():
         session.clear()
         message = 'Access denied: reason=' + request.args['error'] + ' error=' + request.args['error_description'] + ' full=' + pprint.pformat(request.args)      
     else:
-        try:
-            #save user data and set log in message
-            session["github_token"] = (resp['access_token'], '')
-            session['user_data'] = github.get('user').data
-            message = 'You were successfully logged in as ' + session['user_data']['login']
-        except Exception as inst:
-            #clear the session and give error message
+        if session['user_data']['public_repos'] > 9:
+            try:
+                #save user data and set log in message
+                session["github_token"] = (resp['access_token'], '')
+                session['user_data'] = github.get('user').data
+                message = 'You were successfully logged in as ' + session['user_data']['login']
+            except Exception as inst:
+                #clear the session and give error message
+                session.clear()
+                print(inst)
+                message = 'Unable to login. Please try again.'
+        else:
             session.clear()
-            print(inst)
-            message = 'Unable to login. Please try again.'
+            message = 'Unable to login. You are not qualified to view this content.'
     return render_template('message.html', message=message)
 
 
