@@ -23,11 +23,11 @@ github = oauth.remote_app(
     consumer_key=os.environ['GITHUB_CLIENT_ID'], 
     consumer_secret=os.environ['GITHUB_CLIENT_SECRET'],
     request_token_params={'scope': 'user:email'}, #request read-only access to the user's email.  For a list of possible scopes, see developer.github.com/apps/building-oauth-apps/scopes-for-oauth-apps
-    base_url='http://api.github.com/',
+    base_url='https://api.github.com/',
     request_token_url=None,
     access_token_method='POST',
-    access_token_url='http://github.com/login/oauth/access_token',  
-    authorize_url='http://github.com/login/oauth/authorize' #URL for github's OAuth login
+    access_token_url='https://github.com/login/oauth/access_token',  
+    authorize_url='https://github.com/login/oauth/authorize' #URL for github's OAuth login
 )
 
 
@@ -41,7 +41,7 @@ def home():
 
 @app.route('/login')
 def login():   
-    return github.authorize(callback=url_for('authorized', _external=True, _scheme='https'))
+    return github.authorize(callback=url_for('authorized', _external=True, _scheme='http'))
 
 @app.route('/logout')
 def logout():
@@ -55,20 +55,20 @@ def authorized():
         session.clear()
         message = 'Access denied: reason=' + request.args['error'] + ' error=' + request.args['error_description'] + ' full=' + pprint.pformat(request.args)      
     else:
-        if session['user_data']['public_repos'] > 9:
-            try:
-                #save user data and set log in message
-                session["github_token"] = (resp['access_token'], '')
-                session['user_data'] = github.get('user').data
+        try:
+            #save user data and set log in message
+            session['user_data'] = github.get('user').data
+            if session['user_data']['public_repos'] > 9:
                 message = 'You were successfully logged in as ' + session['user_data']['login']
-            except Exception as inst:
-                #clear the session and give error message
+                session["github_token"] = (resp['access_token'], '')
+            else:
                 session.clear()
-                print(inst)
-                message = 'Unable to login. Please try again.'
-        else:
+                message = 'Unable to login. You are not qualified to view this content.'
+        except Exception as inst:
+            #clear the session and give error message
             session.clear()
-            message = 'Unable to login. You are not qualified to view this content.'
+            print(inst)
+            message = 'Unable to login. Please try again.'
     return render_template('message.html', message=message)
 
 
