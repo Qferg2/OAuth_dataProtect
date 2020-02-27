@@ -16,6 +16,7 @@ app.debug = True #Change this to False for production
 
 app.secret_key = os.environ['SECRET_KEY'] 
 oauth = OAuth(app)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT']='1'
 
 #Set up Github as OAuth provider
 github = oauth.remote_app(
@@ -57,10 +58,10 @@ def authorized():
     else:
         try:
             #save user data and set log in message
-            session['user_data'] = github.get('user').data
+            session["github_token"] = (resp['access_token'], '')
+            session['user_data'] = github.get('user').data 
             if session['user_data']['public_repos'] > 9:
                 message = 'You were successfully logged in as ' + session['user_data']['login']
-                session["github_token"] = (resp['access_token'], '')
             else:
                 session.clear()
                 message = 'Unable to login. You are not qualified to view this content.'
