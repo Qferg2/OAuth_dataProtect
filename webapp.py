@@ -16,7 +16,6 @@ app.debug = True #Change this to False for production
 
 app.secret_key = os.environ['SECRET_KEY'] 
 oauth = OAuth(app)
-os.environ['OAUTHLIB_INSECURE_TRANSPORT']='1'
 
 #Set up Github as OAuth provider
 github = oauth.remote_app(
@@ -42,7 +41,7 @@ def home():
 
 @app.route('/login')
 def login():   
-    return github.authorize(callback=url_for('authorized', _external=True, _scheme='http'))
+    return github.authorize(callback=url_for('authorized', _external=True, _scheme='https'))
 
 @app.route('/logout')
 def logout():
